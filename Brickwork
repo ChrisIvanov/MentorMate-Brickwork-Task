@@ -1,0 +1,186 @@
+using System;
+using System.Linq;
+using System.Text;
+using System.Collections.Generic;
+
+namespace MentorMateAssignment_Brickwork_
+{
+    class Program
+    {
+        private static int[,] firstLayer;
+        private static List<int> usedNumbers;
+        static void Main(string[] args)
+        {
+            usedNumbers = new List<int>();
+
+            int[] areaDimentions = Console.ReadLine()
+                .Split(" ", StringSplitOptions.RemoveEmptyEntries)
+                .Select(int.Parse)
+                .ToArray();
+
+            int n = areaDimentions[0];
+            int m = areaDimentions[1];
+
+            firstLayer = ReadMatrix(n, m);
+
+            var secondLayer = LaySecondLayer(firstLayer);
+
+            Console.WriteLine(PrintMatrix(secondLayer));
+        }
+
+        private static int[,] LaySecondLayer(int[,] firstLayer)
+        {
+            int n = firstLayer.GetLength(0);
+            int m = firstLayer.GetLength(1);
+            int[,] secondLayer = new int[n, m];
+
+            for (int row = 0; row < n; row++)
+            {
+                for (int col = 0; col < m; col++)
+                {
+                    int currBrickValue = firstLayer[row, col];
+                    if (usedNumbers.Contains(currBrickValue))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        usedNumbers.Add(currBrickValue);
+                    }
+
+                    FindEmptyPosition(currBrickValue, secondLayer);
+                }
+            }
+
+            return secondLayer;
+        }
+
+        private static void FindEmptyPosition(int currBrickValue, int[,] secondLayer)
+        {
+            bool isBrickLayed = false;
+            for (int row = 0; row < secondLayer.GetLength(0); row++)
+            {
+                for (int col = 0; col < secondLayer.GetLength(1); col++)
+                {
+                    if (secondLayer[row, col] == 0)
+                    {
+                        if (IsPossibleToLayBrickHorizontally(row, col, secondLayer))
+                        {
+                            LayBrickHorizontally(row, col, secondLayer, currBrickValue);
+                            isBrickLayed = true;
+                            break;
+                        }
+
+                        if (IsPossibleToLayBrickVertically(row, col, secondLayer) &&
+                            !isBrickLayed)
+                        {
+                            LayBrickVertically(row, col, secondLayer, currBrickValue);
+                            isBrickLayed = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (isBrickLayed)
+                {
+                    break;
+                }
+            }
+        }
+
+        private static bool IsPossibleToLayBrickHorizontally(int row, int col, int[,] secondLayer)
+        {
+            if (IsInBounds(row, col + 1, secondLayer) &&
+                IsPositionFree(row, col, secondLayer) &&
+                IsPositionFree(row, col + 1, secondLayer) &&
+                firstLayer[row, col] != firstLayer[row, col + 1])
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsPossibleToLayBrickVertically(int firstIdx, int secondIdx, int[,] secondLayer)
+        {
+            if (IsInBounds(firstIdx + 1, secondIdx, secondLayer) &&
+                IsPositionFree(firstIdx, secondIdx, secondLayer) &&
+                IsPositionFree(firstIdx + 1, secondIdx, secondLayer) &&
+                firstLayer[firstIdx, secondIdx] != firstLayer[firstIdx + 1, secondIdx])
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void LayBrickHorizontally(int firstIdx, int secondIdx, int[,] secondLayer, int currBrickValue)
+        {
+            secondLayer[firstIdx, secondIdx] = currBrickValue;
+            secondLayer[firstIdx, secondIdx + 1] = currBrickValue;
+        }
+
+        private static void LayBrickVertically(int firstIdx, int secondIdx, int[,] secondLayer, int currBrickValue)
+        {
+            secondLayer[firstIdx, secondIdx] = currBrickValue;
+            secondLayer[firstIdx + 1, secondIdx] = currBrickValue;
+        }
+
+        private static bool IsPositionFree(int firstIdx, int secondIdx, int[,] secondLayer)
+        {
+            if (secondLayer[firstIdx, secondIdx] == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsInBounds(int firstIdx, int secondIdx, int[,] secondLayer)
+        {
+            if (firstIdx < secondLayer.GetLength(0) && secondIdx < secondLayer.GetLength(1))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static int[,] ReadMatrix(int matrixRows, int matrixCols)
+        {
+            int[,] result = new int[matrixRows, matrixCols];
+
+            for (int row = 0; row < matrixRows; row++)
+            {
+                int[] layerDetails = Console.ReadLine()
+                .Split(" ", StringSplitOptions.RemoveEmptyEntries)
+                .Select(int.Parse)
+                .ToArray();
+
+                for (int col = 0; col < matrixCols; col++)
+                {
+                    result[row, col] = layerDetails[col];
+                }
+            }
+
+            return result;
+        }
+
+        private static string PrintMatrix(int[,] secondLayer)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int row = 0; row < secondLayer.GetLength(0); row++)
+            {
+                for (int col = 0; col < secondLayer.GetLength(1); col++)
+                {
+                    sb.Append(secondLayer[row, col] + " ");
+                }
+
+                sb.AppendLine();
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+    }
+}
